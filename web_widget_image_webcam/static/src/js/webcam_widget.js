@@ -6,15 +6,16 @@ odoo.define('web_widget_image_webcam.webcam_widget', function(require) {
     "use strict";
 
     var core = require('web.core');
-    var Model = require('web.Model');
+    var ajax = require('web.ajax');
     var Dialog = require('web.Dialog');
+    var registry = require('web.field_registry');
 
     var _t = core._t;
     var QWeb = core.qweb;
 
-    core.form_widget_registry.get("image").include({
+    registry.get("image").include({
 
-        render_value: function () {
+        _render: function () {
             this._super();
 
             var self = this,
@@ -37,7 +38,11 @@ odoo.define('web_widget_image_webcam.webcam_widget', function(require) {
 
             self.$el.find('.o_form_binary_file_web_cam').removeClass('col-md-offset-5');
 
-            new Model('ir.config_parameter').call('get_param', ['web_widget_image_webcam.flash_fallback_mode', false]).
+            ajax.jsonRpc('/web/dataset/call', 'call', {
+                'model': 'ir.config_parameter',
+                'method': 'get_param',
+                'args': ['web_widget_image_webcam.flash_fallback_mode']
+            }).
             then(function(default_flash_fallback_mode) {
                 if (default_flash_fallback_mode == 1) {
                     Webcam.set({
@@ -49,7 +54,6 @@ odoo.define('web_widget_image_webcam.webcam_widget', function(require) {
                     });
                 }
             });
-
             self.$el.find('.o_form_binary_file_web_cam').off().on('click', function(){
                 // Init Webcam
                 new Dialog(self, {
